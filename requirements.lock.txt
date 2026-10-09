@@ -1,0 +1,4 @@
+# Pinned versions used to produce the v0.1.0 benchmark numbers.
+# Regenerate with:  pip freeze > requirements.lock.txt
+numpy==2.5.3
+scipy==1.18.1

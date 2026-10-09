@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-and-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pytest ruff
+          python -m pip install --no-deps .
+
+      - name: Lint (ruff)
+        run: python -m ruff check gpforge/ examples/ tests/
+
+      - name: Format check (ruff)
+        run: python -m ruff format --check gpforge/ examples/ tests/
+
+      - name: Tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m pytest tests/ -q
+
+      - name: Demo smoke
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m examples.run_demo
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for tokens (exclude .github to avoid matching this file)
+        run: |
+          if grep -rEn --exclude-dir=.github --exclude-dir=.git \
+            "(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)" \
+            --include="*.py" --include="*.yml" --include="*.toml" --include="*.txt" --include="*.md" . ; then
+            echo "::error::Possible secret material detected."
+            exit 1
+          fi
+          echo "Secret scan OK."

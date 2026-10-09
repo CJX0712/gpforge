@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gpforge"
+version = "0.1.0"
+description = "World-class deterministic Gaussian Process toolkit: exact GP regression with hyperparameter optimization and Bayesian optimization."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "晨星" }]
+keywords = ["gaussian-process", "bayesian-optimization", "machine-learning", "rkhs", "deterministic"]
+dependencies = ["numpy>=1.23", "scipy>=1.9"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "ruff>=0.5", "scikit-learn>=1.3"]
+
+[project.scripts]
+gpforge = "gpforge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gpforge*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "C4"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B", "C4"]
+"examples/*" = ["B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
